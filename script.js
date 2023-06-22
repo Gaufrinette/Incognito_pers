@@ -1,11 +1,29 @@
-// Connexion à la chatbox
-var username = prompt("Veuillez entrer votre pseudonyme :");
+// Connexion à la chatbox via WebSocket
+var socket = new WebSocket("ws://localhost:8080");
+
+// Événement déclenché lorsque la connexion WebSocket est établie
+socket.onopen = function(event) {
+  var username = prompt("Veuillez entrer votre pseudonyme :");
+  var data = {
+    type: "username",
+    username: username
+  };
+  socket.send(JSON.stringify(data));
+};
+
+// Événement déclenché lorsque le serveur envoie un message via WebSocket
+socket.onmessage = function(event) {
+  var messageData = JSON.parse(event.data);
+  var username = messageData.username;
+  var message = messageData.message;
+  showMessage(username, message);
+};
 
 // Événement déclenché lorsqu'un message est envoyé
 document.getElementById("send").addEventListener("click", function() {
   var messageInput = document.getElementById("message");
   var message = messageInput.value;
-  sendMessage(username, message);
+  sendMessage(message);
   messageInput.value = "";
 });
 
@@ -16,8 +34,17 @@ document.getElementById("message").addEventListener("keypress", function(event) 
   }
 });
 
-// Fonction pour envoyer un message à la chatbox
-function sendMessage(username, message) {
+// Fonction pour envoyer un message à la chatbox via WebSocket
+function sendMessage(message) {
+  var data = {
+    type: "message",
+    message: message
+  };
+  socket.send(JSON.stringify(data));
+}
+
+// Fonction pour afficher un message dans la chatbox
+function showMessage(username, message) {
   var chatlog = document.getElementById("chatlog");
   var newMessage = document.createElement("div");
   newMessage.innerHTML = "<strong>" + username + ":</strong> " + message;
